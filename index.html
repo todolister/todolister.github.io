@@ -89,13 +89,17 @@
             border-bottom: none;
         }
 
+        .todo-item input[type="checkbox"] {
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
         .todo-text {
             flex: 1; /* 占满剩余空间 */
-            min-width: 0; /* 防止文本溢出 */
+            min-width: 0; /* 防止溢出 */
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin: 0 10px; /* 左右间距 */
         }
 
         .completed .todo-text {
@@ -103,17 +107,13 @@
             color: #888;
         }
 
-        .todo-item input[type="checkbox"] {
-            flex-shrink: 0; /* 固定复选框大小 */
-            margin-right: 10px;
-        }
-
         .delete-btn {
             background: #dc3545;
             padding: 5px 10px;
             font-size: 14px;
             width: 60px; /* 固定宽度 */
-            flex-shrink: 0; /* 防止按钮被压缩 */
+            flex-shrink: 0;
+            margin-left: 10px; /* 与文本间距 */
         }
 
         .delete-btn:hover {
@@ -135,6 +135,7 @@
             top: 20px;
             right: 20px;
         }
+
         .language-switcher select {
             padding: 5px;
             border-radius: 4px;
@@ -211,25 +212,21 @@
             document.documentElement.lang = lang;
             localStorage.setItem('preferred-language', lang);
             
-            // 更新所有带有 data-i18n 属性的元素
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 element.textContent = i18n[lang][key];
             });
 
-            // 更新所有带有 data-i18n-placeholder 属性的元素
             document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
                 const key = element.getAttribute('data-i18n-placeholder');
                 element.placeholder = i18n[lang][key];
             });
 
-            // 更新现有的待办事项按钮文本
             updateExistingTodoTexts();
         }
 
-        // 更新现有待办事项的按钮文本
         function updateExistingTodoTexts() {
-            const currentLang = document.documentElement.lang;
+            const currentLang = document.documentElement.lang || 'zh';
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.textContent = i18n[currentLang].deleteButton;
             });
@@ -256,21 +253,16 @@
 
         function addTask() {
             const taskInput = document.getElementById('taskInput');
-            const task = taskInput.value.trim();
-            const currentLang = document.documentElement.lang;
+            const text = taskInput.value.trim();
+            const currentLang = document.documentElement.lang || 'zh';
 
-            if (task === '') {
+            if (!text) {
                 alert(i18n[currentLang].emptyInput);
                 return;
             }
 
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span class="task-text">${task}</span>
-                <button class="delete-btn" onclick="deleteTask(this)">${i18n[currentLang].deleteButton}</button>
-            `;
-
-            document.getElementById('todoList').appendChild(li);
+            const task = { text, completed: false };
+            renderTask(task);
             taskInput.value = '';
             saveTasks();
         }
@@ -279,12 +271,15 @@
             const todoList = document.getElementById('todoList');
             const li = document.createElement('li');
             li.className = 'todo-item' + (task.completed ? ' completed' : '');
+            const currentLang = document.documentElement.lang || 'zh';
             
             li.innerHTML = `
                 <input type="checkbox" ${task.completed ? 'checked' : ''} 
                        onchange="toggleTask(this)">
                 <span class="todo-text">${task.text}</span>
-                <button class="delete-btn" onclick="deleteTask(this)">删除</button>
+                <button class="delete-btn" onclick="deleteTask(this)">
+                    ${i18n[currentLang].deleteButton}
+                </button>
             `;
             
             todoList.appendChild(li);
@@ -301,16 +296,14 @@
             saveTasks();
         }
 
-        // 监听 Enter 键添加任务
         document.getElementById('taskInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addTask();
             }
         });
 
-        // 页面加载时设置语言
         document.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('preferred-language') || 'en';
+            const savedLang = localStorage.getItem('preferred-language') || 'zh';
             document.getElementById('langSelect').value = savedLang;
             changeLanguage(savedLang);
         });
