@@ -3,7 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TodoLister - 简单强大的待办事项管理工具</title>
+    <title>TodoLister - 简单高效的在线待办事项管理工具</title>
+    <meta name="description" content="TodoLister 是一个免费的在线待办事项管理工具，帮助您更好地组织和管理日常任务。支持本地存储，保护隐私，无需注册即可使用。">
+    <meta name="keywords" content="待办事项,todo list,任务管理,时间管理,在线工具,免费工具">
+    <meta property="og:title" content="TodoLister - 简单高效的在线待办事项管理工具">
+    <meta property="og:description" content="免费的在线待办事项管理工具，帮助您更好地组织和管理日常任务。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://todolister.github.io">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://todolister.github.io">
+    <link rel="icon" type="image/png" href="favicon.png">
     <style>
         * {
             margin: 0;
@@ -128,7 +140,9 @@
         </div>
         <ul class="todo-list" id="todoList"></ul>
     </div>
-
+    <footer style="text-align: center; padding: 20px; margin-top: 40px; color: #666; border-top: 1px solid #eee;">
+        <p>© 2025 TodoLister · <a href="https://github.com/todolister/todolister.github.io" style="color: #0366d6; text-decoration: none;">开源代码</a></p>
+    </footer>
     <script>
         // 加载时从 LocalStorage 获取数据
         document.addEventListener('DOMContentLoaded', loadTasks);
