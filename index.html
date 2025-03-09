@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TodoLister - 简单强大的待办事项管理工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #1a73e8;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .todo-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1557b0;
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-text {
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .completed .todo-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .todo-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background: #b02a37;
+        }
+
+        @media (max-width: 600px) {
+            .todo-input {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TodoLister</h1>
+        <div class="todo-input">
+            <input type="text" id="taskInput" placeholder="输入待办事项...">
+            <button onclick="addTask()">添加</button>
+        </div>
+        <ul class="todo-list" id="todoList"></ul>
+    </div>
+
+    <script>
+        // 加载时从 LocalStorage 获取数据
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => renderTask(task));
+        }
+
+        function saveTasks() {
+            const tasks = [];
+            document.querySelectorAll('.todo-item').forEach(item => {
+                tasks.push({
+                    text: item.querySelector('.todo-text').textContent,
+                    completed: item.classList.contains('completed')
+                });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            
+            if (text) {
+                const task = { text, completed: false };
+                renderTask(task);
+                saveTasks();
+                input.value = '';
+            }
+        }
+
+        function renderTask(task) {
+            const todoList = document.getElementById('todoList');
+            const li = document.createElement('li');
+            li.className = 'todo-item' + (task.completed ? ' completed' : '');
+            
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                       onchange="toggleTask(this)">
+                <span class="todo-text">${task.text}</span>
+                <button class="delete-btn" onclick="deleteTask(this)">删除</button>
+            `;
+            
+            todoList.appendChild(li);
+        }
+
+        function toggleTask(checkbox) {
+            const item = checkbox.parentElement;
+            item.classList.toggle('completed');
+            saveTasks();
+        }
+
+        function deleteTask(button) {
+            button.parentElement.remove();
+            saveTasks();
+        }
+
+        // 监听 Enter 键添加任务
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+    </script>
+</body>
+</html>
