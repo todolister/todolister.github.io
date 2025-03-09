@@ -76,6 +76,7 @@
 
         .todo-list {
             list-style: none;
+            position: relative;
         }
 
         .todo-item {
@@ -83,15 +84,49 @@
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+            cursor: pointer; /* 表示可交互 */
+        }
+
+        .todo-item.dragging {
+            opacity: 0.6;
+            background: #e9ecef;
+            z-index: 1;
+        }
+
+        .todo-item.active {
+            background: #f8f9fa; /* 长按后高亮 */
         }
 
         .todo-item:last-child {
             border-bottom: none;
         }
 
+        .drag-handle {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: move;
+            display: none; /* 默认隐藏 */
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            user-select: none;
+        }
+
+        .todo-item.active .drag-handle {
+            display: flex; /* 长按后显示 */
+        }
+
         .todo-item input[type="checkbox"] {
             flex-shrink: 0;
             margin-right: 10px;
+            display: none; /* 默认隐藏 */
+        }
+
+        .todo-item.active input[type="checkbox"] {
+            display: block; /* 长按后显示 */
         }
 
         .todo-text {
@@ -114,6 +149,11 @@
             width: 60px;
             flex-shrink: 0;
             margin-left: 10px;
+            display: none; /* 默认隐藏 */
+        }
+
+        .todo-item.active .delete-btn {
+            display: block; /* 长按后显示 */
         }
 
         .delete-btn:hover {
@@ -128,6 +168,16 @@
 
         .clear-btn:hover {
             background: #5a6268;
+        }
+
+        .drop-indicator {
+            position: absolute;
+            height: 2px;
+            background: #1a73e8;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            transition: top 0.1s;
         }
 
         @media (max-width: 600px) {
@@ -259,9 +309,10 @@
         // 从 LocalStorage 加载任务
         function loadTasks() {
             const todoList = document.getElementById('todoList');
-            todoList.innerHTML = ''; // 清空当前列表，避免重复加载
+            todoList.innerHTML = '';
             const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
             tasks.forEach(task => renderTask(task));
+            enableLongPressAndDrag();
         }
 
         // 添加任务
@@ -278,7 +329,8 @@
             const task = { text, completed: false };
             renderTask(task);
             taskInput.value = '';
-            saveTasks(); // 自动保存
+            saveTasks();
+            enableLongPressAndDrag();
         }
 
         // 渲染任务
@@ -289,6 +341,7 @@
             const currentLang = document.documentElement.lang || 'zh';
             
             li.innerHTML = `
+                <span class="drag-handle" draggable="true">☰</span>
                 <input type="checkbox" ${task.completed ? 'checked' : ''} 
                        onchange="toggleTask(this)">
                 <span class="todo-text">${task.text}</span>
@@ -304,13 +357,13 @@
         function toggleTask(checkbox) {
             const item = checkbox.parentElement;
             item.classList.toggle('completed');
-            saveTasks(); // 自动保存
+            saveTasks();
         }
 
         // 删除单个任务
         function deleteTask(button) {
             button.parentElement.remove();
-            saveTasks(); // 自动保存
+            saveTasks();
         }
 
         // 清空所有任务
@@ -318,8 +371,117 @@
             const currentLang = document.documentElement.lang || 'zh';
             if (confirm(i18n[currentLang].confirmClear)) {
                 document.getElementById('todoList').innerHTML = '';
-                localStorage.removeItem('tasks'); // 清空 LocalStorage
+                localStorage.removeItem('tasks');
             }
+        }
+
+        // 启用长按和拖动功能
+        function enableLongPressAndDrag() {
+            const todoList = document.getElementById('todoList');
+            const items = todoList.getElementsByClassName('todo-item');
+            let longPressTimer;
+            const longPressDuration = 500; // 长按时间（毫秒）
+
+            Array.from(items).forEach(item => {
+                // 长按事件（鼠标）
+                item.addEventListener('mousedown', (e) => {
+                    longPressTimer = setTimeout(() => {
+                        item.classList.add('active');
+                    }, longPressDuration);
+                });
+
+                item.addEventListener('mouseup', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+                item.addEventListener('mouseleave', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+                // 长按事件（触摸）
+                item.addEventListener('touchstart', (e) => {
+                    longPressTimer = setTimeout(() => {
+                        item.classList.add('active');
+                    }, longPressDuration);
+                }, { passive: true });
+
+                item.addEventListener('touchend', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+                item.addEventListener('touchcancel', () => {
+                    clearTimeout(longPressTimer);
+                });
+
+                // 点击外部取消激活状态
+                document.addEventListener('click', (e) => {
+                    if (!item.contains(e.target)) {
+                        item.classList.remove('active');
+                    }
+                });
+            });
+
+            const handles = todoList.getElementsByClassName('drag-handle');
+            let dropIndicator = document.createElement('div');
+            dropIndicator.className = 'drop-indicator';
+            todoList.appendChild(dropIndicator);
+
+            Array.from(handles).forEach(handle => {
+                handle.addEventListener('dragstart', (e) => {
+                    const item = handle.parentElement;
+                    if (!item.classList.contains('active')) return; // 未激活时禁止拖动
+                    item.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', '');
+                });
+
+                handle.addEventListener('dragend', (e) => {
+                    const item = handle.parentElement;
+                    item.classList.remove('dragging');
+                    dropIndicator.style.display = 'none';
+                    saveTasks();
+                });
+            });
+
+            todoList.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const draggingItem = todoList.querySelector('.dragging');
+                if (!draggingItem) return; // 无拖动项时退出
+                const afterElement = getDragAfterElement(todoList, e.clientY);
+                dropIndicator.style.display = 'block';
+
+                if (afterElement == null) {
+                    dropIndicator.style.top = `${todoList.lastElementChild.getBoundingClientRect().bottom - todoList.getBoundingClientRect().top}px`;
+                } else {
+                    dropIndicator.style.top = `${afterElement.getBoundingClientRect().top - todoList.getBoundingClientRect().top}px`;
+                }
+            });
+
+            todoList.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const draggingItem = todoList.querySelector('.dragging');
+                if (!draggingItem) return;
+                const afterElement = getDragAfterElement(todoList, e.clientY);
+                if (afterElement == null) {
+                    todoList.appendChild(draggingItem);
+                } else {
+                    todoList.insertBefore(draggingItem, afterElement);
+                }
+                dropIndicator.style.display = 'none';
+            });
+        }
+
+        // 获取拖动目标位置的下一个元素
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.todo-item:not(.dragging)')];
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
         // 监听 Enter 键添加任务
@@ -334,7 +496,7 @@
             const savedLang = localStorage.getItem('preferred-language') || 'zh';
             document.getElementById('langSelect').value = savedLang;
             changeLanguage(savedLang);
-            loadTasks(); // 自动加载任务
+            loadTasks();
         });
     </script>
 </body>
