@@ -95,8 +95,8 @@
         }
 
         .todo-text {
-            flex: 1; /* 占满剩余空间 */
-            min-width: 0; /* 防止溢出 */
+            flex: 1;
+            min-width: 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -111,13 +111,23 @@
             background: #dc3545;
             padding: 5px 10px;
             font-size: 14px;
-            width: 60px; /* 固定宽度 */
+            width: 60px;
             flex-shrink: 0;
-            margin-left: 10px; /* 与文本间距 */
+            margin-left: 10px;
         }
 
         .delete-btn:hover {
             background: #b02a37;
+        }
+
+        .clear-btn {
+            background: #6c757d;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .clear-btn:hover {
+            background: #5a6268;
         }
 
         @media (max-width: 600px) {
@@ -161,6 +171,7 @@
             <button onclick="addTask()" data-i18n="addButton">添加</button>
         </div>
         <ul class="todo-list" id="todoList"></ul>
+        <!-- <button class="clear-btn" onclick="clearTasks()" data-i18n="clearButton">清空任务</button> -->
     </div>
     <footer style="text-align: center; padding: 20px; margin-top: 40px; color: #666; border-top: 1px solid #eee;">
         <p style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
@@ -183,27 +194,27 @@
                 inputPlaceholder: 'Enter your task...',
                 addButton: 'Add',
                 deleteButton: 'Delete',
+                clearButton: 'Clear All',
                 emptyInput: 'Please enter a task',
-                completed: 'Completed',
-                incomplete: 'Incomplete'
+                confirmClear: 'Are you sure you want to clear all tasks?'
             },
             zh: {
                 title: 'TodoLister',
                 inputPlaceholder: '输入待办事项...',
                 addButton: '添加',
                 deleteButton: '删除',
+                clearButton: '清空任务',
                 emptyInput: '请输入待办事项',
-                completed: '已完成',
-                incomplete: '未完成'
+                confirmClear: '确定要清空所有任务吗？'
             },
             ja: {
                 title: 'TodoLister',
                 inputPlaceholder: 'タスクを入力...',
                 addButton: '追加',
                 deleteButton: '削除',
+                clearButton: 'すべてクリア',
                 emptyInput: 'タスクを入力してください',
-                completed: '完了',
-                incomplete: '未完了'
+                confirmClear: 'すべてのタスクをクリアしますか？'
             }
         };
 
@@ -225,6 +236,7 @@
             updateExistingTodoTexts();
         }
 
+        // 更新现有任务的按钮文本
         function updateExistingTodoTexts() {
             const currentLang = document.documentElement.lang || 'zh';
             document.querySelectorAll('.delete-btn').forEach(btn => {
@@ -232,14 +244,7 @@
             });
         }
 
-        // 加载时从 LocalStorage 获取数据
-        document.addEventListener('DOMContentLoaded', loadTasks);
-
-        function loadTasks() {
-            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-            tasks.forEach(task => renderTask(task));
-        }
-
+        // 保存任务到 LocalStorage
         function saveTasks() {
             const tasks = [];
             document.querySelectorAll('.todo-item').forEach(item => {
@@ -251,6 +256,15 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
+        // 从 LocalStorage 加载任务
+        function loadTasks() {
+            const todoList = document.getElementById('todoList');
+            todoList.innerHTML = ''; // 清空当前列表，避免重复加载
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(task => renderTask(task));
+        }
+
+        // 添加任务
         function addTask() {
             const taskInput = document.getElementById('taskInput');
             const text = taskInput.value.trim();
@@ -264,9 +278,10 @@
             const task = { text, completed: false };
             renderTask(task);
             taskInput.value = '';
-            saveTasks();
+            saveTasks(); // 自动保存
         }
 
+        // 渲染任务
         function renderTask(task) {
             const todoList = document.getElementById('todoList');
             const li = document.createElement('li');
@@ -285,27 +300,41 @@
             todoList.appendChild(li);
         }
 
+        // 切换任务完成状态
         function toggleTask(checkbox) {
             const item = checkbox.parentElement;
             item.classList.toggle('completed');
-            saveTasks();
+            saveTasks(); // 自动保存
         }
 
+        // 删除单个任务
         function deleteTask(button) {
             button.parentElement.remove();
-            saveTasks();
+            saveTasks(); // 自动保存
         }
 
+        // 清空所有任务
+        function clearTasks() {
+            const currentLang = document.documentElement.lang || 'zh';
+            if (confirm(i18n[currentLang].confirmClear)) {
+                document.getElementById('todoList').innerHTML = '';
+                localStorage.removeItem('tasks'); // 清空 LocalStorage
+            }
+        }
+
+        // 监听 Enter 键添加任务
         document.getElementById('taskInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 addTask();
             }
         });
 
+        // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', () => {
             const savedLang = localStorage.getItem('preferred-language') || 'zh';
             document.getElementById('langSelect').value = savedLang;
             changeLanguage(savedLang);
+            loadTasks(); // 自动加载任务
         });
     </script>
 </body>
