@@ -129,21 +129,110 @@
                 width: 100%;
             }
         }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .language-switcher select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="language-switcher">
+        <select id="langSelect" onchange="changeLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ja">日本語</option>
+        </select>
+    </div>
+
     <div class="container">
-        <h1>TodoLister</h1>
+        <h1 data-i18n="title">TodoLister</h1>
         <div class="todo-input">
-            <input type="text" id="taskInput" placeholder="输入待办事项...">
-            <button onclick="addTask()">添加</button>
+            <input type="text" id="taskInput" data-i18n-placeholder="inputPlaceholder" placeholder="输入待办事项...">
+            <button onclick="addTask()" data-i18n="addButton">添加</button>
         </div>
         <ul class="todo-list" id="todoList"></ul>
     </div>
     <footer style="text-align: center; padding: 20px; margin-top: 40px; color: #666; border-top: 1px solid #eee;">
-        <p>© 2025 TodoLister · <a href="https://github.com/todolister/todolister.github.io" style="color: #0366d6; text-decoration: none;">开源代码</a></p>
+        <p>
+            <a href="https://github.com/todolister/todolister.github.io" 
+               style="color: #24292f; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                <svg height="20" width="20" viewBox="0 0 16 16" style="fill: currentColor;">
+                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                </svg>
+                <span>Open Source</span>
+            </a>
+        </p>
     </footer>
     <script>
+        // 语言配置
+        const i18n = {
+            en: {
+                title: 'TodoLister',
+                inputPlaceholder: 'Enter your task...',
+                addButton: 'Add',
+                deleteButton: 'Delete',
+                emptyInput: 'Please enter a task',
+                completed: 'Completed',
+                incomplete: 'Incomplete'
+            },
+            zh: {
+                title: 'TodoLister',
+                inputPlaceholder: '输入待办事项...',
+                addButton: '添加',
+                deleteButton: '删除',
+                emptyInput: '请输入待办事项',
+                completed: '已完成',
+                incomplete: '未完成'
+            },
+            ja: {
+                title: 'TodoLister',
+                inputPlaceholder: 'タスクを入力...',
+                addButton: '追加',
+                deleteButton: '削除',
+                emptyInput: 'タスクを入力してください',
+                completed: '完了',
+                incomplete: '未完了'
+            }
+        };
+
+        // 切换语言函数
+        function changeLanguage(lang) {
+            document.documentElement.lang = lang;
+            localStorage.setItem('preferred-language', lang);
+            
+            // 更新所有带有 data-i18n 属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                element.textContent = i18n[lang][key];
+            });
+
+            // 更新所有带有 data-i18n-placeholder 属性的元素
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                element.placeholder = i18n[lang][key];
+            });
+
+            // 更新现有的待办事项按钮文本
+            updateExistingTodoTexts();
+        }
+
+        // 更新现有待办事项的按钮文本
+        function updateExistingTodoTexts() {
+            const currentLang = document.documentElement.lang;
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.textContent = i18n[currentLang].deleteButton;
+            });
+        }
+
         // 加载时从 LocalStorage 获取数据
         document.addEventListener('DOMContentLoaded', loadTasks);
 
@@ -164,15 +253,24 @@
         }
 
         function addTask() {
-            const input = document.getElementById('taskInput');
-            const text = input.value.trim();
-            
-            if (text) {
-                const task = { text, completed: false };
-                renderTask(task);
-                saveTasks();
-                input.value = '';
+            const taskInput = document.getElementById('taskInput');
+            const task = taskInput.value.trim();
+            const currentLang = document.documentElement.lang;
+
+            if (task === '') {
+                alert(i18n[currentLang].emptyInput);
+                return;
             }
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span class="task-text">${task}</span>
+                <button class="delete-btn" onclick="deleteTask(this)">${i18n[currentLang].deleteButton}</button>
+            `;
+
+            document.getElementById('todoList').appendChild(li);
+            taskInput.value = '';
+            saveTasks();
         }
 
         function renderTask(task) {
@@ -206,6 +304,13 @@
             if (e.key === 'Enter') {
                 addTask();
             }
+        });
+
+        // 页面加载时设置语言
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('preferred-language') || 'en';
+            document.getElementById('langSelect').value = savedLang;
+            changeLanguage(savedLang);
         });
     </script>
 </body>
