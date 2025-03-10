@@ -236,7 +236,13 @@
                 deleteButton: 'Delete',
                 clearButton: 'Clear All',
                 emptyInput: 'Please enter a task',
-                confirmClear: 'Are you sure you want to clear all tasks?'
+                confirmClear: 'Are you sure you want to clear all tasks?',
+                guideTitle: '📝 Quick Start Guide',
+                guideAdd: '➡️ Type your task and press Enter or click Add',
+                guideDrag: '🔄 Drag tasks to reorder them',
+                guideEdit: '✏️ Double-click (PC) or long-press (mobile) to edit',
+                guideCheck: '✅ Click checkbox to mark as completed',
+                guideDelete: '❌ Click Delete button to remove task'
             },
             zh: {
                 title: 'TodoLister',
@@ -245,7 +251,13 @@
                 deleteButton: '删除',
                 clearButton: '清空任务',
                 emptyInput: '请输入待办事项',
-                confirmClear: '确定要清空所有任务吗？'
+                confirmClear: '确定要清空所有任务吗？',
+                guideTitle: '📝 快速使用指南',
+                guideAdd: '➡️ 输入任务后按回车键或点击添加',
+                guideDrag: '🔄 拖动任务可以调整顺序',
+                guideEdit: '✏️ 双击(电脑)或长按(手机)可以编辑',
+                guideCheck: '✅ 点击复选框标记完成状态',
+                guideDelete: '❌ 点击删除按钮移除任务'
             },
             ja: {
                 title: 'TodoLister',
@@ -254,7 +266,13 @@
                 deleteButton: '削除',
                 clearButton: 'すべてクリア',
                 emptyInput: 'タスクを入力してください',
-                confirmClear: 'すべてのタスクをクリアしますか？'
+                confirmClear: 'すべてのタスクをクリアしますか？',
+                guideTitle: '📝 クイックガイド',
+                guideAdd: '➡️ タスクを入力してEnterまたは追加をクリック',
+                guideDrag: '🔄 ドラッグして順序を変更',
+                guideEdit: '✏️ ダブルクリック(PC)または長押し(モバイル)で編集',
+                guideCheck: '✅ チェックボックスをクリックして完了をマーク',
+                guideDelete: '❌ 削除ボタンをクリックして削除'
             }
         };
 
@@ -299,9 +317,63 @@
         // 从 LocalStorage 加载任务
         function loadTasks() {
             const todoList = document.getElementById('todoList');
-            todoList.innerHTML = ''; // 清空当前列表，避免重复加载
+            todoList.innerHTML = ''; // 清空当前列表
             const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-            tasks.forEach(task => renderTask(task));
+            
+            if (tasks.length === 0) {
+                // 添加使用引导
+                const currentLang = document.documentElement.lang || 'zh';
+                const guideItems = [
+                    { text: i18n[currentLang].guideTitle, isTitle: true },
+                    { text: i18n[currentLang].guideAdd },
+                    { text: i18n[currentLang].guideDrag },
+                    { text: i18n[currentLang].guideEdit },
+                    { text: i18n[currentLang].guideCheck },
+                    { text: i18n[currentLang].guideDelete }
+                ];
+
+                guideItems.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'todo-item guide-item';
+                    if (item.isTitle) {
+                        li.style.fontWeight = 'bold';
+                        li.style.color = '#1a73e8';
+                    }
+                    li.style.cursor = 'default';
+                    li.style.opacity = '0';
+                    li.style.transform = 'translateY(20px)';
+                    li.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    li.style.transitionDelay = `${index * 0.1}s`;
+                    li.innerHTML = `<span class="todo-text">${item.text}</span>`;
+                    
+                    todoList.appendChild(li);
+                    
+                    // 触发动画
+                    setTimeout(() => {
+                        li.style.opacity = '1';
+                        li.style.transform = 'translateY(0)';
+                    }, 50);
+                });
+
+                // 添加样式
+                const style = document.createElement('style');
+                style.textContent = `
+                    .guide-item {
+                        background: #f8f9fa !important;
+                        border: none !important;
+                        pointer-events: none;
+                    }
+                    .guide-item:hover {
+                        background: #f8f9fa !important;
+                    }
+                    .guide-item .todo-text {
+                        color: #666;
+                    }
+                `;
+                document.head.appendChild(style);
+            } else {
+                tasks.forEach(task => renderTask(task));
+            }
         }
 
         // 添加任务
@@ -315,10 +387,20 @@
                 return;
             }
 
+            // 清除引导说明
+            const guideItems = document.querySelectorAll('.guide-item');
+            if (guideItems.length > 0) {
+                guideItems.forEach(item => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(-20px)';
+                    setTimeout(() => item.remove(), 300);
+                });
+            }
+
             const task = { text, completed: false };
             renderTask(task);
             taskInput.value = '';
-            saveTasks(); // 自动保存
+            saveTasks();
         }
 
         // 渲染任务
