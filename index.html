@@ -83,6 +83,11 @@
             align-items: center;
             padding: 10px;
             border-bottom: 1px solid #eee;
+            cursor: move;
+            touch-action: none;
+            user-select: none;
+            position: relative;
+            background: white;
         }
 
         .todo-item:last-child {
@@ -152,6 +157,41 @@
             border: 1px solid #ddd;
             background-color: white;
             cursor: pointer;
+        }
+
+        .todo-item.dragging {
+            opacity: 0.5;
+            background: #f8f9fa;
+        }
+
+        .todo-text.editing {
+            display: none;
+        }
+
+        .edit-input {
+            flex: 1;
+            margin: 0 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .todo-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .todo-item.press::after {
+            opacity: 1;
         }
     </style>
 </head>
@@ -286,18 +326,163 @@
             const todoList = document.getElementById('todoList');
             const li = document.createElement('li');
             li.className = 'todo-item' + (task.completed ? ' completed' : '');
+            li.draggable = true;
             const currentLang = document.documentElement.lang || 'zh';
             
             li.innerHTML = `
                 <input type="checkbox" ${task.completed ? 'checked' : ''} 
                        onchange="toggleTask(this)">
-                <span class="todo-text">${task.text}</span>
+                <span class="todo-text" ondblclick="startEdit(this)">${task.text}</span>
                 <button class="delete-btn" onclick="deleteTask(this)">
                     ${i18n[currentLang].deleteButton}
                 </button>
             `;
             
+            addDragListeners(li);
+            addTouchListeners(li);
+            
             todoList.appendChild(li);
+        }
+
+        // 添加拖拽事件监听器
+        function addDragListeners(element) {
+            element.addEventListener('dragstart', handleDragStart);
+            element.addEventListener('dragend', handleDragEnd);
+            element.addEventListener('dragover', handleDragOver);
+            element.addEventListener('drop', handleDrop);
+        }
+
+        // 添加触摸事件监听器
+        function addTouchListeners(element) {
+            let touchStartY = 0;
+            let currentY = 0;
+            let initialY = 0;
+            let pressTimer;
+            
+            element.addEventListener('touchstart', (e) => {
+                touchStartY = e.touches[0].clientY;
+                initialY = element.offsetTop;
+                
+                pressTimer = setTimeout(() => {
+                    element.classList.add('press');
+                }, 500);
+            });
+
+            element.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                clearTimeout(pressTimer);
+                
+                if (element.classList.contains('press')) {
+                    currentY = e.touches[0].clientY;
+                    const deltaY = currentY - touchStartY;
+                    element.style.transform = `translateY(${deltaY}px)`;
+                    
+                    const siblings = [...element.parentNode.children];
+                    const currentIndex = siblings.indexOf(element);
+                    
+                    siblings.forEach((sibling, index) => {
+                        if (sibling !== element) {
+                            const rect = sibling.getBoundingClientRect();
+                            if (currentY > rect.top && currentY < rect.bottom) {
+                                if (index > currentIndex) {
+                                    sibling.style.transform = 'translateY(-100%)';
+                                } else {
+                                    sibling.style.transform = 'translateY(100%)';
+                                }
+                            } else {
+                                sibling.style.transform = '';
+                            }
+                        }
+                    });
+                }
+            });
+
+            element.addEventListener('touchend', (e) => {
+                clearTimeout(pressTimer);
+                element.classList.remove('press');
+                element.style.transform = '';
+                
+                const siblings = [...element.parentNode.children];
+                siblings.forEach(sibling => {
+                    sibling.style.transform = '';
+                });
+                
+                reorderTasks();
+            });
+        }
+
+        // 开始编辑任务
+        function startEdit(textElement) {
+            const currentText = textElement.textContent;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentText;
+            input.className = 'edit-input';
+            
+            textElement.classList.add('editing');
+            textElement.parentNode.insertBefore(input, textElement);
+            input.focus();
+            
+            input.addEventListener('blur', () => finishEdit(input, textElement));
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    finishEdit(input, textElement);
+                }
+            });
+        }
+
+        // 完成编辑
+        function finishEdit(input, textElement) {
+            const newText = input.value.trim();
+            if (newText) {
+                textElement.textContent = newText;
+            }
+            input.remove();
+            textElement.classList.remove('editing');
+            saveTasks();
+        }
+
+        // 重新排序任务
+        function reorderTasks() {
+            const tasks = [];
+            document.querySelectorAll('.todo-item').forEach(item => {
+                tasks.push({
+                    text: item.querySelector('.todo-text').textContent,
+                    completed: item.classList.contains('completed')
+                });
+            });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // PC端拖拽处理函数
+        function handleDragStart(e) {
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+            reorderTasks();
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            const draggingItem = document.querySelector('.dragging');
+            const siblings = [...this.parentNode.children];
+            const currentIndex = siblings.indexOf(draggingItem);
+            const targetIndex = siblings.indexOf(this);
+            
+            if (currentIndex !== targetIndex) {
+                if (currentIndex < targetIndex) {
+                    this.parentNode.insertBefore(draggingItem, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggingItem, this);
+                }
+            }
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
         }
 
         // 切换任务完成状态
