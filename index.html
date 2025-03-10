@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -598,10 +598,10 @@
 
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', () => {
-            const savedLang = localStorage.getItem('preferred-language') || 'zh';
+            const savedLang = localStorage.getItem('preferred-language') || 'en';
             document.getElementById('langSelect').value = savedLang;
             changeLanguage(savedLang);
-            loadTasks(); // 自动加载任务
+            loadTasks();
         });
     </script>
 </body>
