@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TodoLister - Simple & Efficient Online Todo List | 简单高效的在线待办事项管理工具</title>
-    <meta name="description" content="A free online todo list tool for efficient task management. Support local storage, privacy protection, and no registration required. | 免费的在线待办事项管理工具，支持本地存储，保护隐私，无需注册即可使用。">
-    <meta name="keywords" content="todo list, task management, time management, online tool, free tool, productivity, 待办事项, 任务管理, 时间管理, 在线工具, 免费工具, 效率工具">
+    <meta name="description"
+        content="A free online todo list tool for efficient task management. Support local storage, privacy protection, and no registration required. | 免费的在线待办事项管理工具，支持本地存储，保护隐私，无需注册即可使用。">
+    <meta name="keywords"
+        content="todo list, task management, time management, online tool, free tool, productivity, 待办事项, 任务管理, 时间管理, 在线工具, 免费工具, 效率工具">
     <meta property="og:title" content="TodoLister - Simple & Efficient Online Todo List | 简单高效的在线待办事项管理工具">
-    <meta property="og:description" content="A free online todo list tool for efficient task management. Support local storage, privacy protection, and no registration required. | 免费的在线待办事项管理工具，支持本地存储，保护隐私，无需注册即可使用。">
+    <meta property="og:description"
+        content="A free online todo list tool for efficient task management. Support local storage, privacy protection, and no registration required. | 免费的在线待办事项管理工具，支持本地存储，保护隐私，无需注册即可使用。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://todolister.github.io">
     <meta name="theme-color" content="#ffffff">
@@ -37,7 +41,7 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
@@ -139,7 +143,7 @@
             .todo-input {
                 flex-direction: column;
             }
-            
+
             button {
                 width: 100%;
             }
@@ -184,7 +188,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
@@ -195,6 +199,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="language-switcher">
         <select id="langSelect" onchange="changeLanguage(this.value)">
@@ -217,23 +222,37 @@
         <p style="margin: 0; display: flex; align-items: center; justify-content: center; gap: 5px;">
             <span>© 2025 TodoLister</span>
             <span style="margin: 0 5px;">·</span>
-            <a href="https://github.com/todolister/todolister.github.io" 
-               style="color: #0366d6; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+            <a href="https://github.com/todolister/todolister.github.io"
+                style="color: #0366d6; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
                 <svg height="20" width="20" viewBox="0 0 16 16" style="fill: currentColor;">
-                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                    <path
+                        d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z">
+                    </path>
                 </svg>
                 <span>Open Source</span>
             </a>
             <span style="margin: 0 5px;">·</span>
-            <a href="https://x.com/1zhaofengyue" 
-               style="color: #0366d6; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+            <a href="https://x.com/1zhaofengyue"
+                style="color: #0366d6; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
                 <svg height="20" width="20" viewBox="0 0 24 24" style="fill: currentColor;">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                    <path
+                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z">
+                    </path>
                 </svg>
                 <span>Follow</span>
             </a>
         </p>
     </footer>
+
+    <!-- Google Analytics 统计代码 (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Y4Z25MCTT9"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-Y4Z25MCTT9'); // 替换为您的 GA4 测量 ID
+    </script>
+
     <script>
         // 语言配置
         const i18n = {
@@ -288,7 +307,7 @@
         function changeLanguage(lang) {
             document.documentElement.lang = lang;
             localStorage.setItem('preferred-language', lang);
-            
+
             document.querySelectorAll('[data-i18n]').forEach(element => {
                 const key = element.getAttribute('data-i18n');
                 element.textContent = i18n[lang][key];
@@ -327,7 +346,7 @@
             const todoList = document.getElementById('todoList');
             todoList.innerHTML = ''; // 清空当前列表
             const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-            
+
             if (tasks.length === 0) {
                 // 添加使用引导
                 const currentLang = document.documentElement.lang || 'zh';
@@ -353,9 +372,9 @@
                     li.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     li.style.transitionDelay = `${index * 0.1}s`;
                     li.innerHTML = `<span class="todo-text">${item.text}</span>`;
-                    
+
                     todoList.appendChild(li);
-                    
+
                     // 触发动画
                     setTimeout(() => {
                         li.style.opacity = '1';
@@ -418,7 +437,7 @@
             li.className = 'todo-item' + (task.completed ? ' completed' : '');
             li.draggable = true;
             const currentLang = document.documentElement.lang || 'zh';
-            
+
             li.innerHTML = `
                 <input type="checkbox" ${task.completed ? 'checked' : ''} 
                        onchange="toggleTask(this)">
@@ -427,10 +446,10 @@
                     ${i18n[currentLang].deleteButton}
                 </button>
             `;
-            
+
             addDragListeners(li);
             addTouchListeners(li);
-            
+
             todoList.appendChild(li);
         }
 
@@ -448,11 +467,11 @@
             let currentY = 0;
             let initialY = 0;
             let pressTimer;
-            
+
             element.addEventListener('touchstart', (e) => {
                 touchStartY = e.touches[0].clientY;
                 initialY = element.offsetTop;
-                
+
                 pressTimer = setTimeout(() => {
                     element.classList.add('press');
                 }, 500);
@@ -461,15 +480,15 @@
             element.addEventListener('touchmove', (e) => {
                 e.preventDefault();
                 clearTimeout(pressTimer);
-                
+
                 if (element.classList.contains('press')) {
                     currentY = e.touches[0].clientY;
                     const deltaY = currentY - touchStartY;
                     element.style.transform = `translateY(${deltaY}px)`;
-                    
+
                     const siblings = [...element.parentNode.children];
                     const currentIndex = siblings.indexOf(element);
-                    
+
                     siblings.forEach((sibling, index) => {
                         if (sibling !== element) {
                             const rect = sibling.getBoundingClientRect();
@@ -491,12 +510,12 @@
                 clearTimeout(pressTimer);
                 element.classList.remove('press');
                 element.style.transform = '';
-                
+
                 const siblings = [...element.parentNode.children];
                 siblings.forEach(sibling => {
                     sibling.style.transform = '';
                 });
-                
+
                 reorderTasks();
             });
         }
@@ -508,11 +527,11 @@
             input.type = 'text';
             input.value = currentText;
             input.className = 'edit-input';
-            
+
             textElement.classList.add('editing');
             textElement.parentNode.insertBefore(input, textElement);
             input.focus();
-            
+
             input.addEventListener('blur', () => finishEdit(input, textElement));
             input.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
@@ -561,7 +580,7 @@
             const siblings = [...this.parentNode.children];
             const currentIndex = siblings.indexOf(draggingItem);
             const targetIndex = siblings.indexOf(this);
-            
+
             if (currentIndex !== targetIndex) {
                 if (currentIndex < targetIndex) {
                     this.parentNode.insertBefore(draggingItem, this.nextSibling);
@@ -613,4 +632,5 @@
         });
     </script>
 </body>
+
 </html>
