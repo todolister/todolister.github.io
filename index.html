@@ -197,6 +197,45 @@
         .todo-item.press::after {
             opacity: 1;
         }
+
+        /* 分类相关样式 */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .category-tab {
+            padding: 8px 16px;
+            border: 1px solid #1a73e8;
+            border-radius: 20px;
+            background: white;
+            color: #1a73e8;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category-tab.active {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .category-tab:hover {
+            background: #f0f2f5;
+        }
+
+        .category-tab.active:hover {
+            background: #1557b0;
+        }
+
+        .todo-item {
+            display: none;
+        }
+
+        .todo-item.visible {
+            display: flex;
+        }
     </style>
 </head>
 
@@ -211,6 +250,12 @@
 
     <div class="container">
         <h1 data-i18n="title">TodoLister</h1>
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="all" data-i18n="allTasks">全部任务</button>
+            <button class="category-tab" data-category="work" data-i18n="workTasks">工作</button>
+            <button class="category-tab" data-category="learn" data-i18n="learnTasks">学习</button>
+            <button class="category-tab" data-category="life" data-i18n="lifeTasks">生活</button>
+        </div>
         <div class="todo-input">
             <input type="text" id="taskInput" data-i18n-placeholder="inputPlaceholder" placeholder="输入待办事项...">
             <button onclick="addTask()" data-i18n="addButton">添加</button>
@@ -279,7 +324,11 @@
                 guideDrag: '🔄 Drag tasks to reorder them',
                 guideEdit: '✏️ Double-click (PC) or long-press (mobile) to edit',
                 guideCheck: '✅ Click checkbox to mark as completed',
-                guideDelete: '❌ Click Delete button to remove task'
+                guideDelete: '❌ Click Delete button to remove task',
+                allTasks: 'All Tasks',
+                workTasks: 'Work',
+                learnTasks: 'Learn',
+                lifeTasks: 'Life'
             },
             zh: {
                 title: 'TodoLister',
@@ -294,7 +343,11 @@
                 guideDrag: '🔄 拖动任务可以调整顺序',
                 guideEdit: '✏️ 双击(电脑)或长按(手机)可以编辑',
                 guideCheck: '✅ 点击复选框标记完成状态',
-                guideDelete: '❌ 点击删除按钮移除任务'
+                guideDelete: '❌ 点击删除按钮移除任务',
+                allTasks: '全部任务',
+                workTasks: '工作',
+                learnTasks: '学习',
+                lifeTasks: '生活'
             },
             ja: {
                 title: 'TodoLister',
@@ -309,7 +362,11 @@
                 guideDrag: '🔄 ドラッグして順序を変更',
                 guideEdit: '✏️ ダブルクリック(PC)または長押し(モバイル)で編集',
                 guideCheck: '✅ チェックボックスをクリックして完了をマーク',
-                guideDelete: '❌ 削除ボタンをクリックして削除'
+                guideDelete: '❌ 削除ボタンをクリックして削除',
+                allTasks: 'すべてのタスク',
+                workTasks: '仕事',
+                learnTasks: '学習',
+                lifeTasks: '生活'
             }
         };
 
@@ -339,19 +396,125 @@
             });
         }
 
-        // 保存任务到 LocalStorage
+        // 任务分类器
+        function classifyTask(task) {
+            const workKeywords = ['project', 'meeting', 'email', 'report', 'work', '会议', '邮件', '项目', '报告', '工作'];
+            const learnKeywords = ['learn', 'study', 'exercise', 'read', 'practice', '学习', '练习', '阅读', '训练'];
+            
+            const text = task.toLowerCase();
+            
+            if (workKeywords.some(keyword => text.includes(keyword))) {
+                return 'work';
+            } else if (learnKeywords.some(keyword => text.includes(keyword))) {
+                return 'learn';
+            } else {
+                return 'life';
+            }
+        }
+
+        // 当前选中的分类
+        let currentCategory = 'all';
+
+        // 切换分类
+        function switchCategory(category) {
+            currentCategory = category;
+            
+            // 更新分类按钮状态
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.category === category);
+            });
+
+            // 更新任务显示状态
+            document.querySelectorAll('.todo-item').forEach(item => {
+                if (category === 'all' || item.dataset.category === category) {
+                    item.classList.add('visible');
+                } else {
+                    item.classList.remove('visible');
+                }
+            });
+        }
+
+        // 初始化分类切换事件
+        document.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                switchCategory(tab.dataset.category);
+            });
+        });
+
+        // 修改保存任务函数
         function saveTasks() {
             const tasks = [];
             document.querySelectorAll('.todo-item').forEach(item => {
                 tasks.push({
                     text: item.querySelector('.todo-text').textContent,
-                    completed: item.classList.contains('completed')
+                    completed: item.classList.contains('completed'),
+                    category: item.dataset.category
                 });
             });
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        // 从 LocalStorage 加载任务
+        // 修改渲染任务函数
+        function renderTask(task) {
+            const todoList = document.getElementById('todoList');
+            const li = document.createElement('li');
+            li.className = 'todo-item' + (task.completed ? ' completed' : '');
+            li.draggable = true;
+            const currentLang = document.documentElement.lang || 'zh';
+            
+            // 设置任务分类
+            const category = task.category || classifyTask(task.text);
+            li.dataset.category = category;
+
+            li.innerHTML = `
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                       onchange="toggleTask(this)">
+                <span class="todo-text" ondblclick="startEdit(this)">${task.text}</span>
+                <button class="delete-btn" onclick="deleteTask(this)">
+                    ${i18n[currentLang].deleteButton}
+                </button>
+            `;
+
+            addDragListeners(li);
+            addTouchListeners(li);
+
+            todoList.appendChild(li);
+            
+            // 根据当前分类显示或隐藏任务
+            if (currentCategory === 'all' || currentCategory === category) {
+                li.classList.add('visible');
+            }
+        }
+
+        // 修改添加任务函数
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const text = taskInput.value.trim();
+            const currentLang = document.documentElement.lang || 'zh';
+
+            if (!text) {
+                alert(i18n[currentLang].emptyInput);
+                return;
+            }
+
+            // 清除引导说明
+            const guideItems = document.querySelectorAll('.guide-item');
+            if (guideItems.length > 0) {
+                guideItems.forEach(item => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(-20px)';
+                    setTimeout(() => item.remove(), 300);
+                });
+            }
+
+            const category = classifyTask(text);
+            const task = { text, completed: false, category };
+            renderTask(task);
+            taskInput.value = '';
+            saveTasks();
+        }
+
+        // 修改加载任务函数
         function loadTasks() {
             const todoList = document.getElementById('todoList');
             todoList.innerHTML = ''; // 清空当前列表
@@ -382,6 +545,7 @@
                     li.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
                     li.style.transitionDelay = `${index * 0.1}s`;
                     li.innerHTML = `<span class="todo-text">${item.text}</span>`;
+                    li.classList.add('visible');
 
                     todoList.appendChild(li);
 
@@ -411,56 +575,6 @@
             } else {
                 tasks.forEach(task => renderTask(task));
             }
-        }
-
-        // 添加任务
-        function addTask() {
-            const taskInput = document.getElementById('taskInput');
-            const text = taskInput.value.trim();
-            const currentLang = document.documentElement.lang || 'zh';
-
-            if (!text) {
-                alert(i18n[currentLang].emptyInput);
-                return;
-            }
-
-            // 清除引导说明
-            const guideItems = document.querySelectorAll('.guide-item');
-            if (guideItems.length > 0) {
-                guideItems.forEach(item => {
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateY(-20px)';
-                    setTimeout(() => item.remove(), 300);
-                });
-            }
-
-            const task = { text, completed: false };
-            renderTask(task);
-            taskInput.value = '';
-            saveTasks();
-        }
-
-        // 渲染任务
-        function renderTask(task) {
-            const todoList = document.getElementById('todoList');
-            const li = document.createElement('li');
-            li.className = 'todo-item' + (task.completed ? ' completed' : '');
-            li.draggable = true;
-            const currentLang = document.documentElement.lang || 'zh';
-
-            li.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                       onchange="toggleTask(this)">
-                <span class="todo-text" ondblclick="startEdit(this)">${task.text}</span>
-                <button class="delete-btn" onclick="deleteTask(this)">
-                    ${i18n[currentLang].deleteButton}
-                </button>
-            `;
-
-            addDragListeners(li);
-            addTouchListeners(li);
-
-            todoList.appendChild(li);
         }
 
         // 添加拖拽事件监听器
