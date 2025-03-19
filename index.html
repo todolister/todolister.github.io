@@ -400,6 +400,7 @@
         function classifyTask(task) {
             const workKeywords = ['project', 'meeting', 'email', 'report', 'work', '会议', '邮件', '项目', '报告', '工作'];
             const learnKeywords = ['learn', 'study', 'exercise', 'read', 'practice', '学习', '练习', '阅读', '训练'];
+            const lifeKeywords = ['life', 'family', 'health', 'food', 'sleep', '生活', '家庭', '健康', '食物', '睡眠'];
             
             const text = task.toLowerCase();
             
@@ -407,8 +408,10 @@
                 return 'work';
             } else if (learnKeywords.some(keyword => text.includes(keyword))) {
                 return 'learn';
-            } else {
+            } else if (lifeKeywords.some(keyword => text.includes(keyword))) {
                 return 'life';
+            } else {
+                return 'work';
             }
         }
 
